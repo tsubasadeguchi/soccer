@@ -17,23 +17,24 @@ const HexbinPlot = ({ data }) => {
   const lineColor = "#444";
 
   const xScale = d3
-    .scaleLog()
-    .domain([1, d3.max(data, (item) => item.goal)])
+    .scaleLinear()
+    .domain([d3.min(data,(item) => item.Mileage), d3.max(data, (item) => item.Mileage)])
     .range([0, contentWidth]);
   const yScale = d3
-    .scaleLog()
-    .domain([1, d3.max(data, (item) => item.shoots)])
+    .scaleLinear()
+    .domain([d3.min(data, (item) => item.Sprint), d3.max(data, (item) => item.Sprint)])
     .range([contentHeight, 0])
 
   const hexbin = d3hexbin
     .hexbin()
-    .x((item) => xScale(Math.max(1, item.goal)))
-    .y((item) => yScale(Math.max(1, item.shoots)))
+    .x((item) => xScale(Math.max(1, item.Mileage)))
+    .y((item) => yScale(Math.max(1, item.Sprint)))
     .radius(20)
     .extent([
       [0, 0],
       [contentWidth, contentHeight],
     ]);
+    //.size([contentWidth,contentHeight]);
   const bins = hexbin(data);
   const colorAccessor = (item) => item.length;
   const colorScale = d3
@@ -70,7 +71,7 @@ const HexbinPlot = ({ data }) => {
             fontSize="12"
             fontWeight="800"
           >
-            廃業数
+            ゴール数
           </text>
           {xScale.ticks().map((x) => {
             return (
@@ -94,7 +95,7 @@ const HexbinPlot = ({ data }) => {
             fontSize="12"
             fontWeight="800"
           >
-            創業数
+            シュート数
           </text>
           {yScale.ticks().map((y) => {
             return (
@@ -127,7 +128,7 @@ const HexbinPlotPage = () => {
         data.forEach((item, i) => {
           item.id = i;
         });
-        setData(data.filter((item) => item.goal >= 0 && item.shoots >= 0));
+        setData(data.filter((item) => item.Mileage >= 0 && item.Sprint >= 0));
       });
   }, []);
 
