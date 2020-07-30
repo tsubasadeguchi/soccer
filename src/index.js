@@ -18,17 +18,19 @@ const HexbinPlot = ({ data }) => {
 
   const xScale = d3
     .scaleLinear()
-    .domain([d3.min(data,(item) => item.Mileage), d3.max(data, (item) => item.Mileage)])
-    .range([0, contentWidth]);
+    .domain([d3.min(data,(item) => item.tSNE_X), d3.max(data, (item) => item.tSNE_X)])
+    .range([0, contentWidth])
+    .nice();
   const yScale = d3
     .scaleLinear()
-    .domain([d3.min(data, (item) => item.Sprint), d3.max(data, (item) => item.Sprint)])
+    .domain([d3.min(data, (item) => item.tSNE_Y), d3.max(data, (item) => item.tSNE_Y)])
     .range([contentHeight, 0])
+    .nice();
 
   const hexbin = d3hexbin
     .hexbin()
-    .x((item) => xScale(Math.max(1, item.Mileage)))
-    .y((item) => yScale(Math.max(1, item.Sprint)))
+    .x((item) => xScale(Math.max(item.tSNE_X)))
+    .y((item) => yScale(Math.max(item.tSNE_Y)))
     .radius(20)
     .extent([
       [0, 0],
@@ -71,7 +73,7 @@ const HexbinPlot = ({ data }) => {
             fontSize="12"
             fontWeight="800"
           >
-            ゴール数
+            tSNE_X
           </text>
           {xScale.ticks().map((x) => {
             return (
@@ -95,7 +97,7 @@ const HexbinPlot = ({ data }) => {
             fontSize="12"
             fontWeight="800"
           >
-            シュート数
+            tSNE_Y
           </text>
           {yScale.ticks().map((y) => {
             return (
@@ -119,22 +121,33 @@ const HexbinPlot = ({ data }) => {
 };
 
 const HexbinPlotPage = () => {
-  const [data, setData] = React.useState([]);
+  const [data, setGameData] = React.useState([]);
+
+
+  const [data2,setTeamData] = React.useState([]);
 
   React.useEffect(() => {
-    fetch("J_Total.json")
+    fetch("J_Data.json")
       .then((response) => response.json())
       .then((data) => {
-        data.forEach((item, i) => {
+        data.game.forEach((item, i) => {
           item.id = i;
         });
-        setData(data.filter((item) => item.Mileage >= 0 && item.Sprint >= 0));
-      });
+        setGameData(data.game.filter((item) => item.View >= 0));
+      }) 
+    fetch("J_Data.json")
+      .then((response2) => response2.json())
+      .then((data) => {
+        data.team.forEach((item, i) => {
+          item.id = i;
+        });
+        setTeamData(data.team.filter((item) => item.Total >= 0));
+      }) 
+    
   }, []);
-
   return (
     <div>
-      <h1 className="title is-3">サッカー</h1>
+      <h1 className="title is-3">サッカーやろうぜ!</h1>
       <figure className="image is-3by2">
         <HexbinPlot data={data} />
       </figure>
