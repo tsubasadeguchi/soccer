@@ -1,16 +1,18 @@
-import React from "react";
-import { render } from 'react-dom'
+import React, { useEffect, useState, useRef } from "react";
+import { render } from "react-dom";
 import * as d3 from "d3";
 import * as d3hexbin from "d3-hexbin";
 
-const HexbinPlot = ({ data }) => {
+const HexbinPlot = ({ data, setSelectedGames }) => {
   const contentWidth = 800;
   const contentHeight = 500;
+  const xTop = 0;
+  const yTop = 0;
   const margin = {
-    left: 80,
-    right: 20,
-    top: 20,
-    bottom: 80,
+    left: 50,
+    right: 50,
+    top: 50,
+    bottom: 50,
   };
   const width = contentWidth + margin.left + margin.right;
   const height = contentHeight + margin.top + margin.bottom;
@@ -18,35 +20,41 @@ const HexbinPlot = ({ data }) => {
 
   const xScale = d3
     .scaleLinear()
-    .domain([d3.min(data,(item) => item.tSNE_X), d3.max(data, (item) => item.tSNE_X)])
+    .domain(d3.extent(data, (item) => item.PCA1))
     .range([0, contentWidth])
     .nice();
   const yScale = d3
     .scaleLinear()
-    .domain([d3.min(data, (item) => item.tSNE_Y), d3.max(data, (item) => item.tSNE_Y)])
+    .domain(d3.extent(data, (item) => item.PCA2))
     .range([contentHeight, 0])
     .nice();
 
   const hexbin = d3hexbin
     .hexbin()
-    .x((item) => xScale(Math.max(item.tSNE_X)))
-    .y((item) => yScale(Math.max(item.tSNE_Y)))
+    .x((item) => xScale(Math.max(item.PCA1)))
+    .y((item) => yScale(Math.max(item.PCA2)))
     .radius(20)
     .extent([
       [0, 0],
       [contentWidth, contentHeight],
     ]);
-    //.size([contentWidth,contentHeight]);
+
   const bins = hexbin(data);
-  const colorAccessor = (item) => item.length;
+  const colorAccessor = (item) => {
+    let total = 0;
+    item.forEach((value) => {
+      total += value.Mileage;
+    });
+    return total / item.length;
+  };
   const colorScale = d3
-    .scaleSequential(d3.interpolatePuBu)
-    .domain([0, d3.max(bins, colorAccessor)]);
+    .scaleSequential(d3.interpolateYlGn)
+    .domain(d3.extent(bins, colorAccessor));
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`}>
+    <svg viewBox={`${xTop} ${yTop} ${width} ${height}`}>
       <clipPath id="content-region">
-        <rect x="0" y="0" width={contentWidth} height={contentHeight} />
+        <rect x="0" y={yTop} width={contentWidth} height={contentHeight} />
       </clipPath>
       <g>
         <g
@@ -54,11 +62,15 @@ const HexbinPlot = ({ data }) => {
           transform={`translate(${margin.left},${margin.top})`}
         >
           {bins.map((bin, i) => {
+            function buttonClick() {
+              setSelectedGames(bin);
+            }
             return (
               <g key={i} transform={`translate(${bin.x},${bin.y})`}>
                 <path
                   d={hexbin.hexagon()}
                   fill={colorScale(colorAccessor(bin))}
+                  onClick={buttonClick}
                 />
               </g>
             );
@@ -73,7 +85,7 @@ const HexbinPlot = ({ data }) => {
             fontSize="12"
             fontWeight="800"
           >
-            tSNE_X
+            PCA1
           </text>
           {xScale.ticks().map((x) => {
             return (
@@ -97,7 +109,7 @@ const HexbinPlot = ({ data }) => {
             fontSize="12"
             fontWeight="800"
           >
-            tSNE_Y
+            PCA2
           </text>
           {yScale.ticks().map((y) => {
             return (
@@ -120,11 +132,50 @@ const HexbinPlot = ({ data }) => {
   );
 };
 
-const HexbinPlotPage = () => {
+const SearchGame = ({ data, setSelectedGames }) => {
+  const selectData = setSelectedGames;
+  //console.log(selectData);
+  const selectArray = [];
+  const teamArray = [];
+
+  for (let i = 0; i < selectData.length; i++) {
+    //それぞれを配列
+    selectArray[i] = selectData[i];
+  }
+  for (let i = 0; i < selectData.length; i++) {
+    teamArray[i] = selectArray[i].Team_H;
+  }
+  for (let i = 0; i < selectData.length; i++) {
+    //console.log(selectArray[i]);
+    //console.log(teamArray[i]);
+  }
+  //console.log(selectArray);
+  //console.log(teamArray);
+  const listTeam = selectArray.map((team) => (
+    <li key={team}>
+      {team.Team_H} {team.Goal_H} {team.Goal_A} {team.Team_A}
+    </li>
+  ));
+
+  return <ul>{listTeam}</ul>;
+};
+
+const TotalPage = () => {
   const [data, setGameData] = React.useState([]);
 
+  const [data2, setTeamData] = React.useState([]);
+  const [selectedGames, setSelectedGames] = React.useState([]);
+  //console.log(selectedGames);
+  let positiveEl = useRef(null);
 
-  const [data2,setTeamData] = React.useState([]);
+  function Arraycount(value) {
+    return value.Team;
+  }
+  var gameArray = [];
+  gameArray = data2.filter(Arraycount);
+  const options = gameArray.map((value) => {
+    return <option team={value.Team}>{value.Team}</option>;
+  });
 
   React.useEffect(() => {
     fetch("J_Data.json")
@@ -134,7 +185,7 @@ const HexbinPlotPage = () => {
           item.id = i;
         });
         setGameData(data.game.filter((item) => item.View >= 0));
-      }) 
+      });
     fetch("J_Data.json")
       .then((response2) => response2.json())
       .then((data) => {
@@ -142,16 +193,43 @@ const HexbinPlotPage = () => {
           item.id = i;
         });
         setTeamData(data.team.filter((item) => item.Total >= 0));
-      }) 
-    
+      });
   }, []);
   return (
     <div>
-      <h1 className="title is-3">サッカーやろうぜ!</h1>
-      <figure className="image is-3by2">
-        <HexbinPlot data={data} />
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css"
+        ></link>
+      </head>
+
+      {/*配置*/}
+      <div className="tile is-ancestor">
+        <div className="tile is-vertical is-3">
+          <div className="tile">
+            <div className="tile is-parent is-vertical">
+              <article className="tile is-child box">
+                <p className="title">Team選択</p>
+
+                <div className="control">
+                  <div className="select is-multiple">
+                    <select multiple ref={positiveEl}>
+                      {options}
+                    </select>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <figure className="image is-2by2">
+        <HexbinPlot data={data} setSelectedGames={setSelectedGames} />
+        <SearchGame data={data} setSelectedGames={selectedGames} />
       </figure>
     </div>
   );
 };
-render(<HexbinPlotPage />, document.querySelector('#content'))
+render(<TotalPage />, document.querySelector("#content"));
