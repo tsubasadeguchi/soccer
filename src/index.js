@@ -1,3 +1,5 @@
+import "bulma/css/bulma.css";
+import "./index.css";
 import React, { useEffect, useState, useRef } from "react";
 import { render } from "react-dom";
 import * as d3 from "d3";
@@ -9,10 +11,10 @@ const HexbinPlot = ({ data, setSelectedGames }) => {
   const xTop = 0;
   const yTop = 0;
   const margin = {
-    left: 50,
-    right: 50,
-    top: 50,
-    bottom: 50,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   };
   const width = contentWidth + margin.left + margin.right;
   const height = contentHeight + margin.top + margin.bottom;
@@ -76,57 +78,6 @@ const HexbinPlot = ({ data, setSelectedGames }) => {
             );
           })}
         </g>
-        <g
-          transform={`translate(${margin.left},${margin.top + contentHeight})`}
-        >
-          <line x1="0" y1="0" x2={contentWidth} y2="0" stroke={lineColor} />
-          <text
-            transform={`translate(${contentWidth / 2},40)`}
-            fontSize="12"
-            fontWeight="800"
-          >
-            PCA1
-          </text>
-          {xScale.ticks().map((x) => {
-            return (
-              <g key={x} transform={`translate(${xScale(x)},0)`}>
-                <line x1="0" y1="0" x2="0" y2="5" stroke={lineColor} />
-                <text
-                  fontSize="8"
-                  transform={`translate(0,8)rotate(45)`}
-                  dominantBaseline="central"
-                >
-                  {x}
-                </text>
-              </g>
-            );
-          })}
-        </g>
-        <g transform={`translate(${margin.left},${margin.top})`}>
-          <line x1="0" y1="0" x2="0" y2={contentHeight} stroke={lineColor} />
-          <text
-            transform={`translate(-30,${contentHeight / 2})rotate(-90)`}
-            fontSize="12"
-            fontWeight="800"
-          >
-            PCA2
-          </text>
-          {yScale.ticks().map((y) => {
-            return (
-              <g key={y} transform={`translate(0,${yScale(y)})`}>
-                <line x1="0" y1="0" x2="-5" y2="0" stroke={lineColor} />
-                <text
-                  x="-8"
-                  fontSize="8"
-                  textAnchor="end"
-                  dominantBaseline="central"
-                >
-                  {y}
-                </text>
-              </g>
-            );
-          })}
-        </g>
       </g>
     </svg>
   );
@@ -146,36 +97,114 @@ const SearchGame = ({ data, setSelectedGames }) => {
     teamArray[i] = selectArray[i].Team_H;
   }
   for (let i = 0; i < selectData.length; i++) {
-    //console.log(selectArray[i]);
-    //console.log(teamArray[i]);
+    console.log(selectArray[i]);
+    console.log(teamArray[i]);
   }
-  //console.log(selectArray);
-  //console.log(teamArray);
+  console.log(selectArray);
+  console.log(teamArray);
   const listTeam = selectArray.map((team) => (
-    <li key={team}>
+    <div className="box" key={team}>
       {team.Team_H} {team.Goal_H} {team.Goal_A} {team.Team_A}
-    </li>
+    </div>
   ));
 
-  return <ul>{listTeam}</ul>;
+  return <div>{listTeam}</div>;
 };
 
 const TotalPage = () => {
   const [data, setGameData] = React.useState([]);
-
   const [data2, setTeamData] = React.useState([]);
   const [selectedGames, setSelectedGames] = React.useState([]);
   //console.log(selectedGames);
-  let positiveEl = useRef(null);
 
+  //bulma
+  //チーム名のプルダウン
+  let teamEl = useRef(null);
   function Arraycount(value) {
+    //console.log(value.Team);
     return value.Team;
   }
-  var gameArray = [];
-  gameArray = data2.filter(Arraycount);
-  const options = gameArray.map((value) => {
-    return <option team={value.Team}>{value.Team}</option>;
+  var Team = [];
+  Team = data2.filter(Arraycount);
+  const teamOptions = Team.map((value) => {
+    return <option value={value.Team}>{value.Team}</option>;
   });
+
+  //X軸のプルダウン
+  let pcaXEl = useRef(null);
+  function Arraycount2(value2) {
+    //console.log(value.Team);
+    return value2;
+  }
+  var Pca = [
+    "t-SNE",
+    "PCA1",
+    "PCA2",
+    "PCA3",
+    "PCA4",
+    "PCA5",
+    "PCA6",
+    "PCA7",
+    "PCA8",
+  ];
+  //Pca = data.filter(Arraycount2);
+  //PCA1の要素だけ含む配列作ってるけどこの処理全PCAでやるん？ｗｗｗｗ
+  const pcaXOptions = Pca.map((value2) => {
+    return <option value={value2}>{value2}</option>;
+  });
+
+  //Y軸のプルダウン
+  let pcaYEl = useRef(null);
+  function Arraycount2(value2) {
+    //console.log(value.Team);
+    return value2;
+  }
+  var Pca = [
+    "t-SNE",
+    "PCA1",
+    "PCA2",
+    "PCA3",
+    "PCA4",
+    "PCA5",
+    "PCA6",
+    "PCA7",
+    "PCA8",
+  ];
+  //Pca = data.filter(Arraycount2);
+  //PCA1の要素だけ含む配列作ってるけどこの処理全PCAでやるん？ｗｗｗｗ
+  const pcaYOptions = Pca.map((value2) => {
+    return <option value={value2}>{value2}</option>;
+  });
+
+  /*const [step, setStep] = useState(50);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setStep(+event.target.elements.step.value);
+  };
+
+  const clickButton = () => {
+    handleClickEvent(data.nodes);
+  };
+
+  const handleClickEvent = () => {
+    var percent;
+    for (const option of teamEl.current.options) {
+      if (option.selected === true) {
+        percent = option.value;
+      }
+    }
+
+    var teamIds = [];
+
+    for (const option of teamEl.current.options) {
+      if (option.selected === true) {
+        teamIds.push(option.value);
+      }
+    }
+
+    console.log(teamIds);
+    setGameData(data.filter(teamIds));
+  };*/
 
   React.useEffect(() => {
     fetch("J_Data.json")
@@ -197,38 +226,63 @@ const TotalPage = () => {
   }, []);
   return (
     <div>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css"
-        ></link>
-      </head>
-
-      {/*配置*/}
-      <div className="tile is-ancestor">
-        <div className="tile is-vertical is-3">
-          <div className="tile">
-            <div className="tile is-parent is-vertical">
-              <article className="tile is-child box">
-                <p className="title">Team選択</p>
-
-                <div className="control">
-                  <div className="select is-multiple">
-                    <select multiple ref={positiveEl}>
-                      {options}
-                    </select>
-                  </div>
-                </div>
-              </article>
-            </div>
+      <section className="hero is-info">
+        <div class="hero-body">
+          <div class="container">
+            <h1 class="title">Soccer</h1>
+            <h2 class="subtitle">Let's play soccer</h2>
           </div>
         </div>
-      </div>
+      </section>
+      <section className="section">
+        <div class="columns">
+          <div class="column is-one-quarter">
+            {/*プルダウンメニュー*/}
+            <div className="box" style={{ height: "100%" }}>
+              <div class="field">
+                <label class="label">Team</label>
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select>{teamOptions}</select>
+                  </div>
+                </div>
+              </div>
 
-      <figure className="image is-2by2">
-        <HexbinPlot data={data} setSelectedGames={setSelectedGames} />
-        <SearchGame data={data} setSelectedGames={selectedGames} />
-      </figure>
+              <div class="field">
+                <label class="label">X</label>
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select>{pcaXOptions}</select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label">Y</label>
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select>{pcaYOptions}</select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <HexbinPlot data={data} setSelectedGames={setSelectedGames} />
+          </div>
+        </div>
+        <div className="columns">
+          <div className="column">
+            <SearchGame data={data} setSelectedGames={selectedGames} />
+          </div>
+        </div>
+      </section>
+      <footer class="footer">
+        <div class="content has-text-centered">
+          <p>&copy; 2020 Manaya Sakamoto, Tsubasa Deguchi</p>
+        </div>
+      </footer>
     </div>
   );
 };
