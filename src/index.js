@@ -113,7 +113,15 @@ const SearchGame = ({ data, setSelectedGames }) => {
   console.log(teamArray);
   const listTeam = selectArray.map((team) => (
     <div className="box" key={team}>
-      {team.Team_H} {team.Goal_H} {team.Goal_A} {team.Team_A}
+      <p align="center">
+        <font size="5">
+          {team.Team_H}{" "}
+          <font size="6" color="red">
+            {team.Goal_H} ー {team.Goal_A}
+          </font>{" "}
+          {team.Team_A}
+        </font>
+      </p>
     </div>
   ));
 
@@ -141,15 +149,9 @@ const TotalPage = () => {
   });
   console.log(teamOptions);
 
-  //X軸のプルダウン
+  //軸のプルダウン
   let axisEl = useRef(null);
-  function Arraycount2(value2) {
-    //console.log(value.Team);
-    return value2;
-  }
   var Axis = ["t-SNE", "PCA"];
-  //Pca = data.filter(Arraycount2);
-  //PCA1の要素だけ含む配列作ってるけどこの処理全PCAでやるん？ｗｗｗｗ
   const axisOptions = Axis.map((value2) => {
     return <option value={value2}>{value2}</option>;
   });
@@ -162,10 +164,10 @@ const TotalPage = () => {
   });
 
   const clickButton = () => {
-    handleClickEvent(data.game);
+    handleClickEvent();
   };
   const clickButton2 = () => {
-    handleClickEvent2(data);
+    handleClickEvent2();
   };
 
   var selectAxis;
@@ -213,7 +215,7 @@ const TotalPage = () => {
         });
         setGameData(data.game.filter((item) => item.View >= 0));
       });
-    console.log(data);
+    //console.log(data);
   };
 
   React.useEffect(() => {
