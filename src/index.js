@@ -5,7 +5,7 @@ import { render } from "react-dom";
 import * as d3 from "d3";
 import * as d3hexbin from "d3-hexbin";
 
-const HexbinPlot = ({ data, setSelectedGames }) => {
+const HexbinPlot = ({ data, setSelectedGames, axis, color }) => {
   const contentWidth = 800;
   const contentHeight = 500;
   const xTop = 0;
@@ -19,33 +19,42 @@ const HexbinPlot = ({ data, setSelectedGames }) => {
   const width = contentWidth + margin.left + margin.right;
   const height = contentHeight + margin.top + margin.bottom;
   const lineColor = "#444";
+  var axisX;
+  var axisY;
 
+  if (axis === "PCA") {
+    axisX = "PCA1";
+    axisY = "PCA2";
+  } else {
+    axisX = "tSNE_X";
+    axisY = "tSNE_Y";
+  }
   const xScale = d3
     .scaleLinear()
-    .domain(d3.extent(data, (item) => item.PCA1))
+    .domain(d3.extent(data, (item) => item[axisX]))
     .range([0, contentWidth])
     .nice();
   const yScale = d3
     .scaleLinear()
-    .domain(d3.extent(data, (item) => item.PCA2))
+    .domain(d3.extent(data, (item) => item[axisY]))
     .range([contentHeight, 0])
     .nice();
-
   const hexbin = d3hexbin
     .hexbin()
-    .x((item) => xScale(Math.max(item.PCA1)))
-    .y((item) => yScale(Math.max(item.PCA2)))
+    .x((item) => xScale(Math.max(item[axisX])))
+    .y((item) => yScale(Math.max(item[axisY])))
     .radius(20)
     .extent([
       [0, 0],
       [contentWidth, contentHeight],
     ]);
 
+  var a = color;
   const bins = hexbin(data);
   const colorAccessor = (item) => {
     let total = 0;
     item.forEach((value) => {
-      total += value.Mileage;
+      total += value[a];
     });
     return total / item.length;
   };
@@ -126,85 +135,86 @@ const TotalPage = () => {
   }
   var Team = [];
   Team = data2.filter(Arraycount);
+
   const teamOptions = Team.map((value) => {
     return <option value={value.Team}>{value.Team}</option>;
   });
+  console.log(teamOptions);
 
   //X軸のプルダウン
-  let pcaXEl = useRef(null);
+  let axisEl = useRef(null);
   function Arraycount2(value2) {
     //console.log(value.Team);
     return value2;
   }
-  var Pca = [
-    "t-SNE",
-    "PCA1",
-    "PCA2",
-    "PCA3",
-    "PCA4",
-    "PCA5",
-    "PCA6",
-    "PCA7",
-    "PCA8",
-  ];
+  var Axis = ["t-SNE", "PCA"];
   //Pca = data.filter(Arraycount2);
   //PCA1の要素だけ含む配列作ってるけどこの処理全PCAでやるん？ｗｗｗｗ
-  const pcaXOptions = Pca.map((value2) => {
+  const axisOptions = Axis.map((value2) => {
     return <option value={value2}>{value2}</option>;
   });
 
-  //Y軸のプルダウン
-  let pcaYEl = useRef(null);
-  function Arraycount2(value2) {
-    //console.log(value.Team);
-    return value2;
-  }
-  var Pca = [
-    "t-SNE",
-    "PCA1",
-    "PCA2",
-    "PCA3",
-    "PCA4",
-    "PCA5",
-    "PCA6",
-    "PCA7",
-    "PCA8",
-  ];
-  //Pca = data.filter(Arraycount2);
-  //PCA1の要素だけ含む配列作ってるけどこの処理全PCAでやるん？ｗｗｗｗ
-  const pcaYOptions = Pca.map((value2) => {
-    return <option value={value2}>{value2}</option>;
+  //色のプルダウン
+  let colorEl = useRef(null);
+  var Color = ["View", "Mileage", "Sprint", "Shoot", "Goal"];
+  const colorOptions = Color.map((value3) => {
+    return <option value={value3}>{value3}</option>;
   });
-
-  /*const [step, setStep] = useState(50);
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    setStep(+event.target.elements.step.value);
-  };
 
   const clickButton = () => {
-    handleClickEvent(data.nodes);
+    handleClickEvent(data.game);
+  };
+  const clickButton2 = () => {
+    handleClickEvent2(data);
   };
 
+  var selectAxis;
+  var selectColor = "Mileage";
+
   const handleClickEvent = () => {
-    var percent;
+    var selectTeam;
+    const newGameData = data.slice();
+    console.log(newGameData);
+    console.log(data);
     for (const option of teamEl.current.options) {
       if (option.selected === true) {
-        percent = option.value;
+        selectTeam = option.value;
       }
     }
+    console.log(selectTeam);
 
-    var teamIds = [];
-
-    for (const option of teamEl.current.options) {
+    for (const option of axisEl.current.options) {
       if (option.selected === true) {
-        teamIds.push(option.value);
+        selectAxis = option.value;
       }
     }
+    console.log(selectAxis);
 
-    console.log(teamIds);
-    setGameData(data.filter(teamIds));
-  };*/
+    for (const option of colorEl.current.options) {
+      if (option.selected === true) {
+        selectColor = option.value;
+      }
+    }
+    console.log(selectColor);
+
+    setGameData(
+      newGameData.filter(
+        (item) => item.Team_H === selectTeam || item.Team_A === selectTeam
+      )
+    );
+  };
+
+  const handleClickEvent2 = () => {
+    fetch("J_Data.json")
+      .then((response) => response.json())
+      .then((data) => {
+        data.game.forEach((item, i) => {
+          item.id = i;
+        });
+        setGameData(data.game.filter((item) => item.View >= 0));
+      });
+    console.log(data);
+  };
 
   React.useEffect(() => {
     fetch("J_Data.json")
@@ -226,60 +236,98 @@ const TotalPage = () => {
   }, []);
   return (
     <div>
+      {/*見出し*/}
       <section className="hero is-info">
-        <div class="hero-body">
-          <div class="container">
-            <h1 class="title">Soccer</h1>
-            <h2 class="subtitle">Let's play soccer</h2>
+        <div className="hero-body">
+          <div className="container">
+            <h1 className="title">Soccer</h1>
+            <h2 className="subtitle">Let's play soccer</h2>
           </div>
         </div>
       </section>
       <section className="section">
-        <div class="columns">
-          <div class="column is-one-quarter">
-            {/*プルダウンメニュー*/}
+        <div className="columns">
+          <div className="column is-one-quarter">
+            {/*プルダウンメニュー 画面3分の1*/}
             <div className="box" style={{ height: "100%" }}>
-              <div class="field">
-                <label class="label">Team</label>
-                <div class="control">
-                  <div class="select is-fullwidth">
-                    <select>{teamOptions}</select>
+              <div className="field">
+                <label className="label">Team</label>
+                <div className="control">
+                  <div className="select is-fullwidth">
+                    <select ref={teamEl}>{teamOptions}</select>
                   </div>
                 </div>
               </div>
 
-              <div class="field">
-                <label class="label">X</label>
-                <div class="control">
-                  <div class="select is-fullwidth">
-                    <select>{pcaXOptions}</select>
+              <div className="field">
+                <label className="label">Axis</label>
+                <div className="control">
+                  <div className="select is-fullwidth">
+                    <select ref={axisEl}>{axisOptions}</select>
                   </div>
                 </div>
               </div>
 
-              <div class="field">
-                <label class="label">Y</label>
-                <div class="control">
-                  <div class="select is-fullwidth">
-                    <select>{pcaYOptions}</select>
+              <div className="field">
+                <label className="label">Color</label>
+                <div className="control">
+                  <div className="select is-fullwidth">
+                    <select ref={colorEl}>{colorOptions}</select>
                   </div>
                 </div>
+              </div>
+
+              {/*スタートボタン*/}
+              <div className="field">
+                <label className="label">Start</label>
+
+                <p className="subtitle">
+                  Startボタンを押すとシミュレーションを開始します
+                </p>
+                <button
+                  className="button is-danger is-active"
+                  onClick={clickButton}
+                >
+                  Start
+                </button>
+              </div>
+              {/*リセットボタン*/}
+              <div className="field">
+                <label className="label">Reset</label>
+
+                <p className="subtitle">
+                  Resetボタンを押すとシミュレーションを開始します
+                </p>
+                <button
+                  className="button is-danger is-active"
+                  onClick={clickButton2}
+                >
+                  Reset
+                </button>
               </div>
             </div>
+            {/**/}
           </div>
 
-          <div class="column">
-            <HexbinPlot data={data} setSelectedGames={setSelectedGames} />
+          <div className="column">
+            <HexbinPlot
+              data={data}
+              setSelectedGames={setSelectedGames}
+              axis={selectAxis}
+              color={selectColor}
+            />
           </div>
         </div>
+        {/*此処までで上側(検索とhexbin)*/}
         <div className="columns">
           <div className="column">
             <SearchGame data={data} setSelectedGames={selectedGames} />
           </div>
         </div>
       </section>
-      <footer class="footer">
-        <div class="content has-text-centered">
+      {/*検索から表示までを1つのsection*/}
+      <footer className="footer">
+        <div className="content has-text-centered">
           <p>&copy; 2020 Manaya Sakamoto, Tsubasa Deguchi</p>
         </div>
       </footer>
