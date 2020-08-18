@@ -1,11 +1,20 @@
 import "bulma/css/bulma.css";
 import "./index.css";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { render } from "react-dom";
 import * as d3 from "d3";
 import * as d3hexbin from "d3-hexbin";
 
-const HexbinPlot = ({ data, setSelectedGames, axis, color }) => {
+const HexbinPlot = ({ data, setSelectedGames, axis, setSelectedColor }) => {
+  let axisX;
+  let axisY;
+  if (axis === "PCA") {
+    axisX = "PCA1";
+    axisY = "PCA2";
+  } else {
+    axisX = "tSNE_X";
+    axisY = "tSNE_Y";
+  }
   const contentWidth = 800;
   const contentHeight = 500;
   const xTop = 0;
@@ -18,17 +27,7 @@ const HexbinPlot = ({ data, setSelectedGames, axis, color }) => {
   };
   const width = contentWidth + margin.left + margin.right;
   const height = contentHeight + margin.top + margin.bottom;
-  const lineColor = "#444";
-  var axisX;
-  var axisY;
 
-  if (axis === "PCA") {
-    axisX = "PCA1";
-    axisY = "PCA2";
-  } else {
-    axisX = "tSNE_X";
-    axisY = "tSNE_Y";
-  }
   const xScale = d3
     .scaleLinear()
     .domain(d3.extent(data, (item) => item[axisX]))
@@ -49,12 +48,11 @@ const HexbinPlot = ({ data, setSelectedGames, axis, color }) => {
       [contentWidth, contentHeight],
     ]);
 
-  var a = color;
   const bins = hexbin(data);
   const colorAccessor = (item) => {
     let total = 0;
     item.forEach((value) => {
-      total += value[a];
+      total += value[setSelectedColor];
     });
     return total / item.length;
   };
@@ -94,7 +92,7 @@ const HexbinPlot = ({ data, setSelectedGames, axis, color }) => {
 
 const SearchGame = ({ data, setSelectedGames }) => {
   const selectData = setSelectedGames;
-  //console.log(selectData);
+
   const selectArray = [];
   const teamArray = [];
 
@@ -105,23 +103,29 @@ const SearchGame = ({ data, setSelectedGames }) => {
   for (let i = 0; i < selectData.length; i++) {
     teamArray[i] = selectArray[i].Team_H;
   }
-  for (let i = 0; i < selectData.length; i++) {
-    console.log(selectArray[i]);
-    console.log(teamArray[i]);
-  }
-  console.log(selectArray);
-  console.log(teamArray);
+
   const listTeam = selectArray.map((team) => (
-    <div className="box" key={team}>
-      <p align="center">
-        <font size="5">
-          {team.Team_H}{" "}
-          <font size="6" color="red">
-            {team.Goal_H} ー {team.Goal_A}
-          </font>{" "}
-          {team.Team_A}
-        </font>
-      </p>
+    <div className="box" style={{ height: "100%" }}>
+      <nav class="level is-mobile">
+        <div className="level-item has-text-centered" key={team}>
+          <div>
+            <p class="heading">Home</p>
+            <p class="title">{team.Team_H} </p>
+          </div>
+          <div>
+            <p class="heading">score</p>
+            <p class="title">
+              <font color="red">
+                &nbsp;{team.Goal_H} ー {team.Goal_A}&nbsp;
+              </font>
+            </p>
+          </div>
+          <div>
+            <p class="heading">Away</p>
+            <p class="title">{team.Team_A}</p>
+          </div>
+        </div>
+      </nav>
     </div>
   ));
 
@@ -129,16 +133,25 @@ const SearchGame = ({ data, setSelectedGames }) => {
 };
 
 const TotalPage = () => {
-  const [data, setGameData] = React.useState([]);
-  const [data2, setTeamData] = React.useState([]);
-  const [selectedGames, setSelectedGames] = React.useState([]);
-  //console.log(selectedGames);
+  const [originalData, setGameData] = useState([]);
+  const [data2, setTeamData] = useState([]);
+  const [selectedGames, setSelectedGames] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const [selectedAxis, setSelectedAxis] = useState("");
+  const [selectedColor, setSelectedColor] = useState("View");
+
+  const data = originalData.filter((item) => {
+    return (
+      item.Team_H === selectedTeam ||
+      item.Team_A === selectedTeam ||
+      selectedTeam === ""
+    );
+  });
 
   //bulma
   //チーム名のプルダウン
-  let teamEl = useRef(null);
+
   function Arraycount(value) {
-    //console.log(value.Team);
     return value.Team;
   }
   var Team = [];
@@ -147,78 +160,35 @@ const TotalPage = () => {
   const teamOptions = Team.map((value) => {
     return <option value={value.Team}>{value.Team}</option>;
   });
-  console.log(teamOptions);
+  teamOptions.unshift(<option value="">ALL</option>);
 
   //軸のプルダウン
-  let axisEl = useRef(null);
+
   var Axis = ["t-SNE", "PCA"];
   const axisOptions = Axis.map((value2) => {
     return <option value={value2}>{value2}</option>;
   });
 
   //色のプルダウン
-  let colorEl = useRef(null);
+
   var Color = ["View", "Mileage", "Sprint", "Shoot", "Goal"];
   const colorOptions = Color.map((value3) => {
     return <option value={value3}>{value3}</option>;
   });
 
-  const clickButton = () => {
-    handleClickEvent();
-  };
-  const clickButton2 = () => {
-    handleClickEvent2();
+  const handleChangeTeam = (event) => {
+    setSelectedTeam(event.target.value);
   };
 
-  var selectAxis;
-  var selectColor = "Mileage";
-
-  const handleClickEvent = () => {
-    var selectTeam;
-    const newGameData = data.slice();
-    console.log(newGameData);
-    console.log(data);
-    for (const option of teamEl.current.options) {
-      if (option.selected === true) {
-        selectTeam = option.value;
-      }
-    }
-    console.log(selectTeam);
-
-    for (const option of axisEl.current.options) {
-      if (option.selected === true) {
-        selectAxis = option.value;
-      }
-    }
-    console.log(selectAxis);
-
-    for (const option of colorEl.current.options) {
-      if (option.selected === true) {
-        selectColor = option.value;
-      }
-    }
-    console.log(selectColor);
-
-    setGameData(
-      newGameData.filter(
-        (item) => item.Team_H === selectTeam || item.Team_A === selectTeam
-      )
-    );
+  const handlechangecolor = (event) => {
+    setSelectedColor(event.target.value);
   };
 
-  const handleClickEvent2 = () => {
-    fetch("J_Data.json")
-      .then((response) => response.json())
-      .then((data) => {
-        data.game.forEach((item, i) => {
-          item.id = i;
-        });
-        setGameData(data.game.filter((item) => item.View >= 0));
-      });
-    //console.log(data);
+  const handleChangeAxis = (event) => {
+    setSelectedAxis(event.target.value);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch("J_Data.json")
       .then((response) => response.json())
       .then((data) => {
@@ -247,16 +217,20 @@ const TotalPage = () => {
           </div>
         </div>
       </section>
+
       <section className="section">
         <div className="columns">
           <div className="column is-one-quarter">
             {/*プルダウンメニュー 画面3分の1*/}
             <div className="box" style={{ height: "100%" }}>
+              <b>
+                <font size="5">Filter memu</font>
+              </b>
               <div className="field">
                 <label className="label">Team</label>
                 <div className="control">
                   <div className="select is-fullwidth">
-                    <select ref={teamEl}>{teamOptions}</select>
+                    <select onChange={handleChangeTeam}>{teamOptions}</select>
                   </div>
                 </div>
               </div>
@@ -265,7 +239,7 @@ const TotalPage = () => {
                 <label className="label">Axis</label>
                 <div className="control">
                   <div className="select is-fullwidth">
-                    <select ref={axisEl}>{axisOptions}</select>
+                    <select onChange={handleChangeAxis}>{axisOptions}</select>
                   </div>
                 </div>
               </div>
@@ -274,49 +248,25 @@ const TotalPage = () => {
                 <label className="label">Color</label>
                 <div className="control">
                   <div className="select is-fullwidth">
-                    <select ref={colorEl}>{colorOptions}</select>
+                    <select onChange={handlechangecolor}>{colorOptions}</select>
                   </div>
                 </div>
-              </div>
-
-              {/*スタートボタン*/}
-              <div className="field">
-                <label className="label">Start</label>
-
-                <p className="subtitle">
-                  Startボタンを押すとシミュレーションを開始します
-                </p>
-                <button
-                  className="button is-danger is-active"
-                  onClick={clickButton}
-                >
-                  Start
-                </button>
-              </div>
-              {/*リセットボタン*/}
-              <div className="field">
-                <label className="label">Reset</label>
-
-                <p className="subtitle">
-                  Resetボタンを押すとシミュレーションを開始します
-                </p>
-                <button
-                  className="button is-danger is-active"
-                  onClick={clickButton2}
-                >
-                  Reset
-                </button>
               </div>
             </div>
             {/**/}
           </div>
 
           <div className="column">
+            <div className="box">
+              <b>
+                <center>Click Hexbin and show game!</center>
+              </b>
+            </div>
             <HexbinPlot
               data={data}
               setSelectedGames={setSelectedGames}
-              axis={selectAxis}
-              color={selectColor}
+              axis={selectedAxis}
+              setSelectedColor={selectedColor}
             />
           </div>
         </div>
