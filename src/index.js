@@ -124,6 +124,10 @@ const SearchGame = ({ data, setSelectedGames }) => {
             <p class="heading">Away</p>
             <p class="title">{team.Team_A}</p>
           </div>
+          <div>
+            <p class="heading">URL</p>
+            <p class="title">{team.URL}</p>
+          </div>
         </div>
       </nav>
     </div>
