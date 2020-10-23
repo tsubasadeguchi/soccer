@@ -104,34 +104,49 @@ const SearchGame = ({ data, setSelectedGames }) => {
     teamArray[i] = selectArray[i].Team_H;
   }
 
-  const listTeam = selectArray.map((team) => (
-    <div className="box" style={{ height: "100%" }}>
-      <nav class="level is-mobile">
-        <div className="level-item has-text-centered" key={team}>
-          <div>
-            <p class="heading">Home</p>
-            <p class="title">{team.Team_H} </p>
+  const listTeam = selectArray.map((team) => {
+    var paramsString = team.URL;
+    var searchParams = new URLSearchParams(paramsString);
+    var getVUrl = searchParams.getAll("https://www.youtube.com/watch?v");
+    var urlString = "https://www.youtube.com/embed/";
+    console.log(getVUrl);
+    var makeUrl = new URL(urlString + getVUrl);
+    console.log(makeUrl);
+    return (
+      <div className="box" style={{ height: "100%" }}>
+        <nav class="level is-mobile">
+          <div className="level-item has-text-centered" key={team}>
+            <div>
+              <p class="heading">Home</p>
+              <p class="title">{team.Team_H} </p>
+            </div>
+            <div>
+              <p class="heading">score</p>
+              <p class="title">
+                <font color="red">
+                  &nbsp;{team.Goal_H} ー {team.Goal_A}&nbsp;
+                </font>
+              </p>
+            </div>
+            <div>
+              <p class="heading">Away</p>
+              <p class="title">{team.Team_A}&nbsp;</p>
+            </div>
+            <div align="right">
+              <iframe
+                width="560"
+                height="315"
+                src={makeUrl}
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
           </div>
-          <div>
-            <p class="heading">score</p>
-            <p class="title">
-              <font color="red">
-                &nbsp;{team.Goal_H} ー {team.Goal_A}&nbsp;
-              </font>
-            </p>
-          </div>
-          <div>
-            <p class="heading">Away</p>
-            <p class="title">{team.Team_A}</p>
-          </div>
-          <div>
-            <p class="heading">URL</p>
-            <p class="title">{team.URL}</p>
-          </div>
-        </div>
-      </nav>
-    </div>
-  ));
+        </nav>
+      </div>
+    );
+  });
 
   return <div>{listTeam}</div>;
 };
@@ -210,6 +225,7 @@ const TotalPage = () => {
         setTeamData(data.team.filter((item) => item.Total >= 0));
       });
   }, []);
+
   return (
     <div>
       {/*見出し*/}
