@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { render } from "react-dom";
 import * as d3 from "d3";
 import * as d3hexbin from "d3-hexbin";
+import ReactTooltip from 'react-tooltip';
 
 const HexbinPlot = ({ data, setSelectedGames, axis, setSelectedColor }) => {
   let axisX;
@@ -58,7 +59,7 @@ const HexbinPlot = ({ data, setSelectedGames, axis, setSelectedColor }) => {
   };
   const colorScale = d3
     .scaleSequential(d3.interpolateYlGn)
-    .domain(d3.extent(bins, colorAccessor));
+    .domain(d3.extent(bins, colorAccessor)); 
 
   return (
     <svg viewBox={`${xTop} ${yTop} ${width} ${height}`}>
@@ -73,14 +74,31 @@ const HexbinPlot = ({ data, setSelectedGames, axis, setSelectedColor }) => {
           {bins.map((bin, i) => {
             function buttonClick() {
               setSelectedGames(bin);
+              
             }
+            //console.log(bin);
+
+            function mouseUp(){
+              let n = bin.length;
+              let member = [];
+
+              for(let i = 0; i < n; i++){
+                member[i] = bin[i].Team_H + ' ' + bin[i].Goal_H +' - ' + bin[i].Goal_A + ' ' + bin[i].Team_A + '\n';
+              }
+              ReactTooltip.show(member);
+              return member;
+            }
+
             return (
               <g key={i} transform={`translate(${bin.x},${bin.y})`}>
+                <g>
+                <title>{`${mouseUp()}`}</title>
                 <path
                   d={hexbin.hexagon()}
                   fill={colorScale(colorAccessor(bin))}
                   onClick={buttonClick}
                 />
+                </g>
               </g>
             );
           })}
@@ -109,47 +127,324 @@ const SearchGame = ({ data, setSelectedGames }) => {
     var searchParams = new URLSearchParams(paramsString);
     var getVUrl = searchParams.getAll("https://www.youtube.com/watch?v");
     var urlString = "https://www.youtube.com/embed/";
-    console.log(getVUrl);
+    //console.log(team);
     var makeUrl = new URL(urlString + getVUrl);
-    console.log(makeUrl);
     return (
-      <div className="box" style={{ height: "100%" }}>
-        <nav class="level is-mobile">
-          <div className="level-item has-text-centered" key={team}>
-            <div>
-              <p class="heading">Home</p>
-              <p class="title">{team.Team_H} </p>
+        <nav className="columns">
+          {/*
+          <div className="column">        
+            <RadarChart 
+              data={setSelectedGames}
+            />
+          </div>
+          */}
+          
+            <div className="column">
+              <div className="level-item has-text-centered" key={team}>
+                <div>
+                <p className="heading">節数</p>
+                <p className="title">
+                    <font size="5">
+                      {team.Section}節&nbsp;
+                    </font>
+                  </p>
+                </div>
+                <div>
+                  <p className="heading">Home</p>
+                  <p className="title">
+                    <font size="5">
+                      {team.Team_H}
+                    </font>
+                  </p>
+                </div>
+                <div>
+                  <p className="heading">score</p>
+                  <p className="title">
+                    <font color="red" size="4">
+                      &nbsp;{team.Goal_H} ー {team.Goal_A}&nbsp;
+                    </font>
+                  </p>
+                </div>
+                <div>
+                  <p className="heading">Away</p>
+                  <p className="title">
+                    <font size="5">
+                      {team.Team_A}&nbsp;
+                    </font>
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="title" align="center">
+                  <font size="2">
+                    再生回数：{team.View}回&nbsp;
+                    総ゴール数：{team.Goal}点<br></br>
+                    総シュート数：{team.Shoot}本&nbsp;
+                    総スプリント数：{team.Sprint}回<br></br>
+                    総走行距離：{Math.round(team.Mileage)}km
+                  </font>
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="heading">score</p>
-              <p class="title">
-                <font color="red">
-                  &nbsp;{team.Goal_H} ー {team.Goal_A}&nbsp;
-                </font>
-              </p>
-            </div>
-            <div>
-              <p class="heading">Away</p>
-              <p class="title">{team.Team_A}&nbsp;</p>
-            </div>
-            <div align="right">
+            <div className="column">
+              <br></br>
               <iframe
-                width="560"
-                height="315"
                 src={makeUrl}
                 frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen
               ></iframe>
             </div>
-          </div>
-        </nav>
-      </div>
+        </nav>          
     );
   });
-
   return <div>{listTeam}</div>;
 };
+
+
+//平行座標のとこ
+
+const ParallelCoordinates = ({
+  data,
+  variables,
+  margin,
+  contentWidth,
+  contentHeight,
+}) => {
+  const width = contentWidth + margin.left + margin.right;
+  const height = contentHeight + margin.top + margin.bottom;
+  const strokeColor = "#888";
+
+  const xScale = d3
+    .scaleLinear()
+    .domain([0, variables.length - 1])
+    .range([0, contentWidth]);
+  const yScales = variables.map(({ property }) => {
+    return d3
+      .scaleLinear()
+      .domain(d3.extent(data, (item) => item[property]))
+      .range([contentHeight, 0])
+      .nice();
+  });
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`}>
+      <g transform={`translate(${margin.left},${margin.top})`}>
+        <g>
+          {data.map((item, i) => {
+            const line = d3
+              .line()
+              .x((_, i) => xScale(i))
+              .y(({ property }, i) => yScales[i](item[property]));
+            return (
+              <g key={i}>
+                <path
+                  d={line(variables)}
+                  stroke={item.Color}
+                  fill="none"
+                />
+              </g>
+            );
+          })}
+        </g>
+        <g>
+          {variables.map(({ label, property }, i) => {
+            const yScale = yScales[i];
+            return (
+              <g key={i} transform={`translate(${xScale(i)},0)`}>
+                <line y1="0" y2={contentHeight} stroke={strokeColor} />
+                <g>
+                  {yScale.ticks().filter((y) => Math.floor(y) === y).map((y, j) => {
+                    return (
+                      <g key={j} transform={`translate(0,${yScale(y)})`}>
+                        <line x1="-3" x2="3" stroke={strokeColor} />
+                        <text x="5" fontSize="8" dominantBaseline="central">
+                          {y}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+                <text
+                  y="-5"
+                  fontSize="10"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  dominantBaseline="text-after-edge"
+                >
+                  {label}
+                </text>
+                <text
+                  y={contentHeight + 5}
+                  fontSize="10"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  dominantBaseline="text-before-edge"
+                >
+                  {label}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+        <g transform={`translate(0,${contentHeight + 30})`}>
+          {data.map((item, i) => {
+            return (
+              <g
+                key={i}
+                transform={`translate(${i * 35},0)`}
+                style={{ cursor: "pointer" }}
+              >
+                <rect width="10" height="10" fill={item.Color} />
+                <text x="-10" y="25" fontSize="10">
+                  {item.Team}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      </g>
+    </svg>
+  );
+};
+
+//平行座標ここまで
+
+//レーダーチャートここから
+const RadarChart = ({ data }) => {
+  const keys = ["pointView","pointGoal","pointShoot","pointSprint","pointMileage"];
+  const elements = ["再生回数","総ゴール数","総シュート数","総スプリント数","総走行距離"];
+  const margin = {
+    top: 30,
+    right: 30,
+    bottom: 150,
+    left: 50,
+  };
+  console.log(data);
+  const r = 50;
+  const scale = d3
+    .scaleLinear()
+    .domain([
+      0,
+      //d3.max(data[keys]),
+      //d3.max(keys,data,(key,item) => item(key)),
+      d3.max(keys, (key) => d3.max(data, (item) => item[key])),
+    ])
+    .range([0, r])
+    .nice();
+  const t0 = -Math.PI / 2;
+  const dt = (Math.PI * 2) / 5;//keys.length;
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
+  const axisColor = "#ccc";
+  const path = (points) => {
+    const path = d3.path();
+    points.forEach(({ x, y }, j) => {
+      if (j === 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    });
+    path.closePath();
+    return path.toString();
+  };
+  return (
+    <svg
+      viewBox={`0 0 ${2 * r + margin.left + margin.right} ${
+        2 * r + margin.top + margin.bottom
+      }`}
+    >
+      <g transform={`translate(${r + margin.left},${r + margin.right})`}>
+        <g>
+          {keys.map((key, j) => {
+            return (
+              <g key={j}>
+                <line
+                  x1="0"
+                  y1="0"
+                  x2={r * Math.cos(t0 + dt * j)}
+                  y2={r * Math.sin(t0 + dt * j)}
+                  stroke={axisColor}
+                />
+                <text
+                  x={(r + 20) * Math.cos(t0 + dt * j)}
+                  y={(r + 20) * Math.sin(t0 + dt * j)}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize="5"
+                  fontWeight="bold"
+                >
+                  {elements[j]}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+        <g>
+          {scale.ticks(5).map((v, k) => {
+            const points = keys.map((_, j) => {
+              const d = scale(v);
+              const x = d * Math.cos(t0 + dt * j);
+              const y = d * Math.sin(t0 + dt * j);
+              return { x, y };
+            });
+            return (
+              //レーダーチャート内の点数についての部分
+              <g key={k}>
+                <path d={path(points)} fill="none" stroke={axisColor} />
+                <text
+                  x="3"
+                  y={-scale(v)}
+                  textAnchor="start"
+                  dominantBaseline="central"
+                  fontSize="5"
+                >
+                  {v.toFixed(0)}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+        <g>
+          {data.map((item, i) => {
+            const points = keys.map((key, j) => {
+              const d = scale(item[key]);
+              const x = d * Math.cos(t0 + dt * j);
+              const y = d * Math.sin(t0 + dt * j);
+              return { x, y };
+            });
+            return (
+              <g key={i}>
+                <path d={path(points)} fill="none" stroke={color(i)} />
+              </g>
+            );
+          })}
+        </g>
+        
+        <g transform={`translate(${-r},${r + 50})`}>
+          {data.map((item, i) => {
+            //キャプション
+            return (
+              <g key={i} transform={`translate(0,${10*i})`}>
+                <rect x="-50" y="-10" width="7" height="7" fill={color(i)} />
+                <text
+                  textAnchor="start"
+                  dominantBaseline="central"
+                  x="-40"
+                  y="-7"
+                  fontSize="5"
+                >
+                  {item["Team_H"]}-{item["Team_A"]}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      </g>
+    </svg>
+  );
+};
+
 
 const TotalPage = () => {
   const [originalData, setGameData] = useState([]);
@@ -167,8 +462,15 @@ const TotalPage = () => {
     );
   });
 
-  //bulma
-  //チーム名のプルダウン
+  //console.log(data2);​
+  const variables = [
+    { label: "代表歴選手数", property: "National_Player" },
+    { label: "総年俸", property: "Salary" },
+    { label: "個人賞選手数", property: "Award" },
+    { label: "昨年度勝ち点", property: "Last_Year_Point" }
+  ];
+
+  
 
   function Arraycount(value) {
     return value.Team;
@@ -179,14 +481,14 @@ const TotalPage = () => {
   const teamOptions = Team.map((value) => {
     return <option value={value.Team}>{value.Team}</option>;
   });
-  teamOptions.unshift(<option value="">ALL</option>);
+  teamOptions.unshift(<option value="">全て</option>);
 
   //軸のプルダウン
 
-  var Axis = ["t-SNE", "PCA"];
+  /*var Axis = ["t-SNE", "PCA"];
   const axisOptions = Axis.map((value2) => {
     return <option value={value2}>{value2}</option>;
-  });
+  });*/
 
   //色のプルダウン
 
@@ -203,9 +505,9 @@ const TotalPage = () => {
     setSelectedColor(event.target.value);
   };
 
-  const handleChangeAxis = (event) => {
+  /*const handleChangeAxis = (event) => {
     setSelectedAxis(event.target.value);
-  };
+  };*/
 
   useEffect(() => {
     fetch("J_Data.json")
@@ -232,22 +534,40 @@ const TotalPage = () => {
       <section className="hero is-info">
         <div className="hero-body">
           <div className="container">
-            <h1 className="title">Soccer</h1>
-            <h2 className="subtitle">Let's play soccer</h2>
+            <h1 className="title">トラッキングデータを用いたサッカーの見どころ分析</h1>
+            <h2 className="subtitle">日本大学　尾上研究室</h2>
           </div>
         </div>
       </section>
 
       <section className="section">
         <div className="columns">
-          <div className="column is-one-quarter">
+          <div className="column">
+            <div className = "box"　style={{ height: "100%" }}>
+              <b>
+                <font size="5"><center>Webページの見方</center></font>
+              </b>
+              <p>
+                本ページは2019年明治安田生命J1リーグ全306試合のトラッキングデータを用いた可視化Webページである。
+                本ページは4つのブロックから構成されている。<br></br>
+                1.フィルターメニューと平行座標プロット・・・18チームの特徴を表示した平行座標プロットを活用し、Hexbinの表示するチームの選択、色付けに使用する要素の選択が可能。<br></br>
+                2.Hexbin・・・全306試合の試合分布。六角形をクリックをすることでHexbinの下に六角形に含まれる試合を表示する。<br></br>
+                3.レーダーチャート・・・選択された試合の特徴についてのレーダーチャートを表示する。<br></br>
+                4.試合一覧・・・選択された試合の詳細とYouTubeのハイライトを表示する。<br></br>
+              </p>
+            </div>  
+          </div>
+        </div>
+
+        <div className="columns">
+          <div className="column is-two-fifths">
             {/*プルダウンメニュー 画面3分の1*/}
             <div className="box" style={{ height: "100%" }}>
               <b>
-                <font size="5">Filter memu</font>
+                <font size="5"><center>フィルターメニュー</center></font>
               </b>
               <div className="field">
-                <label className="label">Team</label>
+                <label className="label">チーム</label>
                 <div className="control">
                   <div className="select is-fullwidth">
                     <select onChange={handleChangeTeam}>{teamOptions}</select>
@@ -255,49 +575,89 @@ const TotalPage = () => {
                 </div>
               </div>
 
-              <div className="field">
-                <label className="label">Axis</label>
+           {/*<div className="field">
+                <label className="label">分析方法</label>
                 <div className="control">
                   <div className="select is-fullwidth">
                     <select onChange={handleChangeAxis}>{axisOptions}</select>
                   </div>
                 </div>
-              </div>
+              </div>*/}
 
               <div className="field">
-                <label className="label">Color</label>
+                <label className="label">色付け</label>
                 <div className="control">
                   <div className="select is-fullwidth">
                     <select onChange={handlechangecolor}>{colorOptions}</select>
                   </div>
                 </div>
               </div>
+ 
+              <ParallelCoordinates
+                data={data2}
+                variables={variables}
+                margin={{
+                top: 40,
+                left: 40,
+                bottom: 60,
+                right: 40,
+                }}
+                contentWidth={600}
+                contentHeight={400}
+              />
+              
             </div>
             {/**/}
           </div>
 
           <div className="column">
-            <div className="box">
-              <b>
-                <center>Click Hexbin and show game!</center>
-              </b>
-            </div>
+            <div className="box" style={{ height: "100%" }}>
+              <div className="field">
+                <b>
+                  <font size="5"><center>Hexbin</center></font>
+                </b>
+              </div>
+            
             <HexbinPlot
               data={data}
               setSelectedGames={setSelectedGames}
               axis={selectedAxis}
               setSelectedColor={selectedColor}
             />
+            </div>
+            
+            
           </div>
         </div>
         {/*此処までで上側(検索とhexbin)*/}
         <div className="columns">
-          <div className="column">
-            <SearchGame data={data} setSelectedGames={selectedGames} />
+          <div className="column is-two-fifths">
+            <div className="box" style={{ height: "100%" }}>
+              <b>
+                <font size="5"><center>選択領域内の試合のレーダーチャート</center></font>
+              </b>
+              <RadarChart 
+                data={selectedGames}
+              />
+            </div>
           </div>
+          <div className="column">
+            <div className="box" style={{ height: "100%" }}>
+              <b>
+                <font size="5"><center>選択領域内の試合一覧</center></font>
+              </b>
+              <SearchGame 
+                data={data} 
+                setSelectedGames={selectedGames}
+              />
+            </div>
+          </div>
+          
+            
         </div>
       </section>
       {/*検索から表示までを1つのsection*/}
+
       <footer className="footer">
         <div className="content has-text-centered">
           <p>&copy; 2020 Manaya Sakamoto, Tsubasa Deguchi</p>
