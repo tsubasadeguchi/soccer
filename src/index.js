@@ -534,7 +534,7 @@ const TotalPage = () => {
       <section className="hero is-info">
         <div className="hero-body">
           <div className="container">
-            <h1 className="title">トラッキングデータを用いたサッカーの見どころ分析</h1>
+            <h1 className="title">サッカー観戦のための試合特徴の多次元データ可視化</h1>
             <h2 className="subtitle">日本大学　尾上研究室</h2>
           </div>
         </div>
