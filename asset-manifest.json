@@ -1,25 +1,25 @@
 {
   "files": {
     "main.css": "/soccer/static/css/main.e909cbf0.chunk.css",
-    "main.js": "/soccer/static/js/main.c2dac606.chunk.js",
-    "main.js.map": "/soccer/static/js/main.c2dac606.chunk.js.map",
+    "main.js": "/soccer/static/js/main.753dcbc3.chunk.js",
+    "main.js.map": "/soccer/static/js/main.753dcbc3.chunk.js.map",
     "runtime-main.js": "/soccer/static/js/runtime-main.89a3cbf2.js",
     "runtime-main.js.map": "/soccer/static/js/runtime-main.89a3cbf2.js.map",
     "static/css/2.0c0672e5.chunk.css": "/soccer/static/css/2.0c0672e5.chunk.css",
-    "static/js/2.e834fe57.chunk.js": "/soccer/static/js/2.e834fe57.chunk.js",
-    "static/js/2.e834fe57.chunk.js.map": "/soccer/static/js/2.e834fe57.chunk.js.map",
+    "static/js/2.ba37a5de.chunk.js": "/soccer/static/js/2.ba37a5de.chunk.js",
+    "static/js/2.ba37a5de.chunk.js.map": "/soccer/static/js/2.ba37a5de.chunk.js.map",
     "index.html": "/soccer/index.html",
-    "precache-manifest.158bd520c217edf32321293272896f0f.js": "/soccer/precache-manifest.158bd520c217edf32321293272896f0f.js",
+    "precache-manifest.bc7cdefd9d4a6dd8c5117c24d0424d1f.js": "/soccer/precache-manifest.bc7cdefd9d4a6dd8c5117c24d0424d1f.js",
     "service-worker.js": "/soccer/service-worker.js",
     "static/css/2.0c0672e5.chunk.css.map": "/soccer/static/css/2.0c0672e5.chunk.css.map",
     "static/css/main.e909cbf0.chunk.css.map": "/soccer/static/css/main.e909cbf0.chunk.css.map",
-    "static/js/2.e834fe57.chunk.js.LICENSE.txt": "/soccer/static/js/2.e834fe57.chunk.js.LICENSE.txt"
+    "static/js/2.ba37a5de.chunk.js.LICENSE.txt": "/soccer/static/js/2.ba37a5de.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.89a3cbf2.js",
     "static/css/2.0c0672e5.chunk.css",
-    "static/js/2.e834fe57.chunk.js",
+    "static/js/2.ba37a5de.chunk.js",
     "static/css/main.e909cbf0.chunk.css",
-    "static/js/main.c2dac606.chunk.js"
+    "static/js/main.753dcbc3.chunk.js"
   ]
 }
