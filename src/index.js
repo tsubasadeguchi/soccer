@@ -83,7 +83,7 @@ const HexbinPlot = ({ data, setSelectedGames, axis, setSelectedColor }) => {
               let member = [];
 
               for(let i = 0; i < n; i++){
-                member[i] = bin[i].Team_H + ' ' + bin[i].Goal_H +' - ' + bin[i].Goal_A + ' ' + bin[i].Team_A + '\n';
+                member[i] = bin[i].Team_H + ' ' + bin[i].ゴール_H +' - ' + bin[i].ゴール_A + ' ' + bin[i].Team_A + '\n';
               }
               ReactTooltip.show(member);
               return member;
@@ -161,7 +161,7 @@ const SearchGame = ({ data, setSelectedGames }) => {
                   <p className="heading">score</p>
                   <p className="title">
                     <font color="red" size="4">
-                      &nbsp;{team.Goal_H} ー {team.Goal_A}&nbsp;
+                      &nbsp;{team.ゴール_H} ー {team.ゴール_A}&nbsp;
                     </font>
                   </p>
                 </div>
@@ -177,11 +177,11 @@ const SearchGame = ({ data, setSelectedGames }) => {
               <div>
                 <p className="title" align="center">
                   <font size="2">
-                    再生回数：{team.View}回&nbsp;
-                    総ゴール数：{team.Goal}点<br></br>
-                    総シュート数：{team.Shoot}本&nbsp;
-                    総スプリント数：{team.Sprint}回<br></br>
-                    総走行距離：{Math.round(team.Mileage)}km
+                    再生回数：{team.再生回数}回&nbsp;
+                    総ゴール数：{team.ゴール}点<br></br>
+                    総シュート数：{team.シュート}本&nbsp;
+                    総スプリント数：{team.スプリント}回<br></br>
+                    総走行距離：{Math.round(team.走行距離)}km
                   </font>
                 </p>
               </div>
@@ -312,7 +312,7 @@ const ParallelCoordinates = ({
 
 //レーダーチャートここから
 const RadarChart = ({ data }) => {
-  const keys = ["pointView","pointGoal","pointShoot","pointSprint","pointMileage"];
+  const keys = ["point再生回数","pointゴール","pointシュート","pointスプリント","point走行距離"];
   const elements = ["再生回数","総ゴール数","総シュート数","総スプリント数","総走行距離"];
   const margin = {
     top: 30,
@@ -452,7 +452,7 @@ const TotalPage = () => {
   const [selectedGames, setSelectedGames] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [selectedAxis, setSelectedAxis] = useState("");
-  const [selectedColor, setSelectedColor] = useState("View");
+  const [selectedColor, setSelectedColor] = useState("再生回数");
 
   const data = originalData.filter((item) => {
     return (
@@ -492,7 +492,7 @@ const TotalPage = () => {
 
   //色のプルダウン
 
-  var Color = ["View", "Mileage", "Sprint", "Shoot", "Goal"];
+  var Color = ["再生回数", "走行距離", "スプリント", "シュート", "ゴール"];
   const colorOptions = Color.map((value3) => {
     return <option value={value3}>{value3}</option>;
   });
@@ -516,7 +516,7 @@ const TotalPage = () => {
         data.game.forEach((item, i) => {
           item.id = i;
         });
-        setGameData(data.game.filter((item) => item.View >= 0));
+        setGameData(data.game.filter((item) => item.再生回数 >= 0));
       });
     fetch("J_Data.json")
       .then((response2) => response2.json())
@@ -534,8 +534,8 @@ const TotalPage = () => {
       <section className="hero is-info">
         <div className="hero-body">
           <div className="container">
-            <h1 className="title">サッカー観戦のための試合特徴の多次元データ可視化</h1>
-            <h2 className="subtitle">日本大学　尾上研究室</h2>
+            <h1 className="title">J.LEAGUE NAVI</h1>
+            <h2 className="subtitle">サッカー観戦のための試合特徴の多次元データ可視化</h2>
           </div>
         </div>
       </section>
@@ -547,14 +547,18 @@ const TotalPage = () => {
               <b>
                 <font size="5"><center>Webページの見方</center></font>
               </b>
+              
+              <b><font size="3">本ページは2019年明治安田生命J1リーグ全306試合のトラッキングデータを用いた可視化Webページである。</font></b>
               <p>
-                本ページは2019年明治安田生命J1リーグ全306試合のトラッキングデータを用いた可視化Webページである。
-                本ページは4つのブロックから構成されている。<br></br>
-                1.フィルターメニューと平行座標プロット・・・18チームの特徴を表示した平行座標プロットを活用し、Hexbinの表示するチームの選択、色付けに使用する要素の選択が可能。<br></br>
-                2.Hexbin・・・全306試合の試合分布。六角形をクリックをすることでHexbinの下に六角形に含まれる試合を表示する。<br></br>
-                3.レーダーチャート・・・選択された試合の特徴についてのレーダーチャートを表示する。<br></br>
-                4.試合一覧・・・選択された試合の詳細とYouTubeのハイライトを表示する。<br></br>
+              本ページは4つのブロックから構成されている。
               </p>
+                <ol type = "1">
+                <li>&nbsp;フィルターメニューと平行座標プロット・・・18チームの特徴を表示した平行座標プロットを活用し、Hexbinの表示するチームの選択、色付けに使用する要素の選択が可能。</li>
+                <li>&nbsp;Hexbin・・・全306試合の試合分布。六角形をクリックをすることでHexbinの下に六角形に含まれる試合を表示する。</li>
+                <li>&nbsp;レーダーチャート・・・選択された試合の特徴についてのレーダーチャートを表示する。</li>
+                <li>&nbsp;試合一覧・・・選択された試合の詳細とYouTubeのハイライトを表示する。</li>
+                </ol>
+              
             </div>  
           </div>
         </div>
@@ -617,13 +621,14 @@ const TotalPage = () => {
                   <font size="5"><center>Hexbin</center></font>
                 </b>
               </div>
-            
+            <div className="hex">
             <HexbinPlot
               data={data}
               setSelectedGames={setSelectedGames}
               axis={selectedAxis}
               setSelectedColor={selectedColor}
             />
+            </div>
             </div>
             
             
