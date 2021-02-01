@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "812bd8f505cf4f1cb27e47c4c5c40216",
+    "revision": "968541b429746e9640e4506479e25c00",
     "url": "/soccer/index.html"
   },
   {
@@ -8,8 +8,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/soccer/static/css/2.0c0672e5.chunk.css"
   },
   {
-    "revision": "b1b62b2a0b8f3d8552fe",
-    "url": "/soccer/static/css/main.e909cbf0.chunk.css"
+    "revision": "2cdb371fde5b4e4d2f59",
+    "url": "/soccer/static/css/main.ed547f5e.chunk.css"
   },
   {
     "revision": "fc65160c8523e2230d10",
@@ -20,8 +20,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/soccer/static/js/2.ba37a5de.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "b1b62b2a0b8f3d8552fe",
-    "url": "/soccer/static/js/main.753dcbc3.chunk.js"
+    "revision": "2cdb371fde5b4e4d2f59",
+    "url": "/soccer/static/js/main.f7679fea.chunk.js"
   },
   {
     "revision": "f4d478d0a7ff9f2ba986",
